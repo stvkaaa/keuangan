@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                    <i class="fas fa-chart-line mr-2"></i>Rekap Keuangan
+                </h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <!-- Home Button -->
+                <a href="index.html" title="Kembali ke Home"
+                    class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+                    <i class="fas fa-home text-gray-800 dark:text-gray-100"></i>
+                </a>
+                <!-- Dark Mode Toggle -->
+                <button id="darkModeToggle"
+                    class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+                    <i class="fas fa-moon dark:hidden text-gray-800"></i>
+                    <i class="fas fa-sun hidden dark:inline text-yellow-400"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Month Selector -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+            <h3 class="text-lg font-medium mb-4">Pilih Bulan</h3>
+            <input type="month" id="monthSelect"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none dark:bg-gray-700 dark:text-white"
+                value="">
+        </div>
+
+        <!-- Rekap Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+            <h3 class="text-lg font-medium mb-4" id="rekapTitle">Transaksi Bulan </h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Tanggal</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Deskripsi</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Jenis</th>
+                            <th
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekapList"
+                        class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">Pilih
+                                bulan untuk melihat rekap.</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                            <td colspan="3" class="px-6 py-4 text-right font-semibold text-gray-700 dark:text-gray-300">
+                                Selisih:</td>
+                            <td id="selisihCell"
+                                class="px-6 py-4 text-right font-semibold text-gray-700 dark:text-gray-300">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode init
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+        document.getElementById('darkModeToggle').onclick = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+        };
+
+        // Load rekap based on month selection
+        const monthSelect = document.getElementById('monthSelect');
+        const rekapList = document.getElementById('rekapList');
+        const rekapTitle = document.getElementById('rekapTitle');
+        const selisihCell = document.getElementById('selisihCell');
+
+        // Default to current month
+        const now = new Date();
+        monthSelect.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        loadRekap();
+
+        monthSelect.addEventListener('change', loadRekap);
+
+        function loadRekap() {
+            const [year, month] = monthSelect.value.split('-');
+            const key = `${parseInt(month)}-${year}`;
+            const all = JSON.parse(localStorage.getItem('transactions')) || {};
+            const data = all[key] || [];
+            rekapTitle.textContent =
+                `Transaksi Bulan ${new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric'}).format(new Date(year, month-1))}`;
+
+            if (data.length === 0) {
+                rekapList.innerHTML =
+                    `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada transaksi pada bulan ini.</td></tr>`;
+                selisihCell.textContent = `Rp 0`;
+                selisihCell.className = selisihCell.className.replace(/text-\w+-\d+/g, '').trim();
+                return;
+            }
+
+            let incomeSum = 0;
+            let expenseSum = 0;
+
+            const rowsHtml = data.sort((a, b) => new Date(b.date) - new Date(a.date)).map(t => {
+                if (t.type === 'income') incomeSum += t.amount;
+                else expenseSum += t.amount;
+
+                return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${new Date(t.date).toLocaleDateString('id-ID')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900 dark:text-white">${t.description}</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.type==='income'? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200':'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}">${t.type==='income'?'Pemasukan':'Pengeluaran'}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm ${t.type==='income'? 'text-green-600 dark:text-green-400':'text-red-600 dark:text-red-400'}">Rp ${t.amount.toLocaleString('id-ID')}</td>
+                </tr>
+            `;
+            }).join('');
+
+            rekapList.innerHTML = rowsHtml;
+
+            const diff = incomeSum - expenseSum;
+            const formatted = `Rp ${Math.abs(diff).toLocaleString('id-ID')}`;
+            selisihCell.textContent = `${diff >= 0 ? '' : '-'}${formatted}`;
+            selisihCell.className = selisihCell.className.replace(/text-\w+-\d+/g, '').trim();
+            selisihCell.classList.add(diff >= 0 ? 'text-green-600' : 'text-red-600', 'dark:text-opacity-80');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencatat Keuangan Pribadi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                    <i class="fas fa-wallet mr-2"></i>KeuanganKu
+                </h1>
+            </div>
+            <div class="flex space-x-2">
+                <a href="rekap.html" title="Lihat Rekap"
+                    class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+                    <i class="fas fa-calendar-alt"></i>
+                </a>
+                <!-- Dark Mode Toggle - Re-added for functionality, can be hidden with CSS if desired -->
+                <button id="darkModeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Calendar Selector -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <button id="prevMonth" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2 class="text-xl font-semibold" id="currentMonthYear">Juni 2023</h2>
+                <button id="nextMonth" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600 dark:text-green-400">Pemasukan</p>
+                        <p class="text-2xl font-bold" id="totalIncome">Rp 0</p>
+                    </div>
+                    <i class="fas fa-arrow-down-right text-green-600 dark:text-green-400 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-red-600 dark:text-red-400">Pengeluaran</p>
+                        <p class="text-2xl font-bold" id="totalExpense">Rp 0</p>
+                    </div>
+                    <i class="fas fa-arrow-up-right text-red-600 dark:text-red-400 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600 dark:text-blue-400">Saldo</p>
+                        <p class="text-2xl font-bold" id="balance">Rp 0</p>
+                    </div>
+                    <i class="fas fa-coins text-blue-600 dark:text-blue-400 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Transaction Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+            <h3 class="text-lg font-medium mb-4">Tambah Transaksi</h3>
+            <form id="transactionForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="col-span-1 md:col-span-2">
+                    <label for="description"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi</label>
+                    <input type="text" id="description"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jumlah
+                        (Rp)</label>
+                    <input type="number" id="amount" min="0" step="1000"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="type"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jenis</label>
+                    <select id="type"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white">
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                    </select>
+                </div>
+                <div class="col-span-1 md:col-span-4">
+                    <label for="date"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal</label>
+                    <input type="date" id="date"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                        required>
+                </div>
+                <div class="col-span-1 md:col-span-4 flex justify-end">
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Tambah
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Transactions List -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">Daftar Transaksi</h3>
+                <div class="relative">
+                    <label for="search" class="sr-only">Cari</label>
+                    <input type="text" id="search" placeholder="Cari transaksi..."
+                        class="w-full md:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Tanggal</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Deskripsi</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Jenis</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Jumlah</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsList"
+                        class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Transactions will be added here dynamically -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                Tidak ada transaksi. Mulai dengan menambahkan transaksi baru.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-gray-500 dark:text-gray-400" id="transactionCount">Total: 0 transaksi</div>
+                <button id="exportBtn"
+                    class="px-3 py-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm">
+                    <i class="fas fa-download mr-1"></i>Ekspor ke CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Dark mode toggle
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            darkModeToggle.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.contains('dark');
+                localStorage.setItem('darkMode', isDark ? 'false' : 'true');
+                updateDarkMode();
+            });
+
+            // Initialize dark mode based on user preference
+            function updateDarkMode() {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const darkMode = localStorage.getItem('darkMode') || (prefersDark ? 'true' : 'false');
+
+                if (darkMode === 'true') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            // Run on initial load
+            updateDarkMode();
+
+            // Current date and month/year selector
+            let currentDate = new Date();
+            const currentMonthYear = document.getElementById('currentMonthYear');
+            const prevMonthBtn = document.getElementById('prevMonth');
+            const nextMonthBtn = document.getElementById('nextMonth');
+
+            function updateMonthYear() {
+                const options = {
+                    month: 'long',
+                    year: 'numeric'
+                };
+                currentMonthYear.textContent = new Intl.DateTimeFormat('id-ID', options).format(currentDate);
+                loadTransactions();
+            }
+
+            prevMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                // Check URL params for month/year
+                const urlParams = new URLSearchParams(window.location.search);
+                const monthParam = urlParams.get('month');
+                const yearParam = urlParams.get('year');
+
+                if (monthParam && yearParam) {
+                    currentDate = new Date(yearParam, monthParam - 1);
+                }
+
+                updateMonthYear();
+            });
+
+            nextMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                updateMonthYear();
+            });
+
+            updateMonthYear();
+
+            // Transaction form
+            const transactionForm = document.getElementById('transactionForm');
+            const descriptionInput = document.getElementById('description');
+            const amountInput = document.getElementById('amount');
+            const typeSelect = document.getElementById('type');
+            const dateInput = document.getElementById('date');
+
+            // Set today's date as default
+            const today = new Date();
+            dateInput.valueAsDate = today;
+
+            transactionForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const transaction = {
+                    id: Date.now().toString(),
+                    date: dateInput.value,
+                    description: descriptionInput.value,
+                    amount: parseFloat(amountInput.value),
+                    type: typeSelect.value
+                };
+
+                saveTransaction(transaction);
+                transactionForm.reset();
+                dateInput.valueAsDate = today; // Reset date to today
+                descriptionInput.focus();
+            });
+
+            // Transactions data and localStorage
+            function getTransactions() {
+                const transactions = JSON.parse(localStorage.getItem('transactions')) || {};
+                const monthYear = `${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+                return transactions[monthYear] || [];
+            }
+
+            function saveTransaction(transaction) {
+                const transactions = JSON.parse(localStorage.getItem('transactions')) || {};
+                const monthYear =
+                    `${new Date(transaction.date).getMonth() + 1}-${new Date(transaction.date).getFullYear()}`;
+
+                if (!transactions[monthYear]) {
+                    transactions[monthYear] = [];
+                }
+
+                transactions[monthYear].push(transaction);
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                loadTransactions();
+            }
+
+            function deleteTransaction(id) {
+                const transactions = JSON.parse(localStorage.getItem('transactions')) || {};
+                const monthYear = `${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+
+                if (transactions[monthYear]) {
+                    transactions[monthYear] = transactions[monthYear].filter(t => t.id !== id);
+                    localStorage.setItem('transactions', JSON.stringify(transactions));
+                    loadTransactions();
+                }
+            }
+
+            // Load and display transactions
+            function loadTransactions() {
+                const transactions = getTransactions();
+                const transactionsList = document.getElementById('transactionsList');
+                const searchInput = document.getElementById('search');
+                const searchTerm = searchInput.value.toLowerCase();
+
+                // Reset and display message if no transactions
+                if (transactions.length === 0) {
+                    transactionsList.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                Tidak ada transaksi. Mulai dengan menambahkan transaksi baru.
+                            </td>
+                        </tr>
+                    `;
+
+                    document.getElementById('totalIncome').textContent = 'Rp 0';
+                    document.getElementById('totalExpense').textContent = 'Rp 0';
+                    document.getElementById('balance').textContent = 'Rp 0';
+                    document.getElementById('transactionCount').textContent = 'Total: 0 transaksi';
+                    return;
+                }
+
+                // Filter transactions if search term exists
+                const filteredTransactions = searchTerm ?
+                    transactions.filter(t => t.description.toLowerCase().includes(searchTerm)) :
+                    transactions;
+
+                if (filteredTransactions.length === 0) {
+                    transactionsList.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                Tidak ada transaksi yang cocok dengan pencarian Anda.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    transactionsList.innerHTML = filteredTransactions
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map(transaction => `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    ${new Date(transaction.date).toLocaleDateString('id-ID')}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">${transaction.description}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        ${transaction.type === 'income' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}">
+                                        ${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm 
+                                    ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
+                                    Rp ${transaction.amount.toLocaleString('id-ID')}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button onclick="deleteTransaction('${transaction.id}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                }
+
+                // Update summary
+                const income = filteredTransactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const expense = filteredTransactions
+                    .filter(t => t.type === 'expense')
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                document.getElementById('totalIncome').textContent = `Rp ${income.toLocaleString('id-ID')}`;
+                document.getElementById('totalExpense').textContent = `Rp ${expense.toLocaleString('id-ID')}`;
+                document.getElementById('balance').textContent =
+                    `Rp ${(income - expense).toLocaleString('id-ID')}`;
+                document.getElementById('transactionCount').textContent =
+                    `Total: ${filteredTransactions.length} transaksi`;
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('search');
+            searchInput.addEventListener('input', loadTransactions);
+
+            // Export to CSV
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function () {
+                const transactions = getTransactions();
+                if (transactions.length === 0) {
+                    alert('Tidak ada data transaksi untuk diekspor');
+                    return;
+                }
+
+                let csv = 'Tanggal,Deskripsi,Jenis,Jumlah\n';
+                transactions.forEach(t => {
+                    csv +=
+                        `"${new Date(t.date).toLocaleDateString('id-ID')}","${t.description}","${t.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}",${t.amount}\n`;
+                });
+
+                const blob = new Blob([csv], {
+                    type: 'text/csv'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden', '');
+                a.setAttribute('href', url);
+                a.setAttribute('download',
+                    `transaksi_${currentDate.getMonth()+1}_${currentDate.getFullYear()}.csv`);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+
+            // Make deleteTransaction function global
+            window.deleteTransaction = deleteTransaction;
+
+            // Rekap button functionality
+            const rekapBtn = document.getElementById('rekapBtn');
+            rekapBtn.addEventListener('click', function () {
+                window.location.href = 'rekap.html';
+            });
+        });
+
+        function getAllMonthsWithData() {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || {};
+            return Object.keys(transactions)
+                .map(key => {
+                    const [month, year] = key.split('-');
+                    return {
+                        month: parseInt(month),
+                        year: parseInt(year),
+                        label: new Date(year, month - 1).toLocaleDateString('id-ID', {
+                            month: 'long',
+                            year: 'numeric'
+                        })
+                    };
+                })
+                .sort((a, b) => new Date(b.year, b.month) - new Date(a.year, a.month));
+        }
+    </script>
+</body>
+
+</html>
